@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Medical Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; }
+        .chat-container { max-width: 600px; margin: 50px auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn-primary { background-color: #007bff; border: none; }
+        #response { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h3 class="text-center mb-4">🩺 AI Medical Agent</h3>
+        <p class="text-muted small">Describe how you're feeling, and our AI will analyze your symptoms.</p>
+        
+        <div class="mb-3">
+            <label for="symptoms" class="form-label">Enter Symptoms:</label>
+            <textarea class="form-control" id="symptoms" rows="3" placeholder="e.g. Fever, cough, and headache..."></textarea>
+        </div>
+        <button onclick="sendSymptoms()" id="sendBtn" class="btn btn-primary w-100">Analyze Symptoms</button>
+
+        <div id="response" class="alert alert-info">
+            <strong>Diagnosis:</strong> <span id="answerText"></span>
+        </div>
+    </div>
+
+    <script>
+        async function sendSymptoms() {
+            const symptoms = document.getElementById('symptoms').value;
+            const btn = document.getElementById('sendBtn');
+            const resDiv = document.getElementById('response');
+            const ansText = document.getElementById('answerText');
+
+            if (!symptoms) return alert("Please enter some symptoms");
+
+            btn.disabled = true;
+            btn.innerText = "Analyzing...";
+
+            const response = await fetch('/api/chat/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symptoms: symptoms })
+            });
+
+            const data = await response.json();
+            ansText.innerText = data.diagnosis;
+            resDiv.style.display = 'block';
+            btn.disabled = false;
+            btn.innerText = "Analyze Symptoms";
+        }
+    </script>
+</body>
+</html>
