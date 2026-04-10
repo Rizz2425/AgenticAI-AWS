@@ -7,6 +7,12 @@ load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=api_key)
 
+if not api_key:
+    print("Warning: GROQ_API_KEY is not set!")
+    client = None 
+else:
+    client = Groq(api_key=api_key)
+
 def get_medical_advice(user_symptoms):
     system_prompt = {
         "role": "system",

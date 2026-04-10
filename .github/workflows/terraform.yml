@@ -37,6 +37,7 @@ jobs:
           host: ${{ env.VM_IP }}
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: GROQ_API_KEY
           script: |
             cd /home/ubuntu
             sudo rm -rf AgenticAI-AWS
