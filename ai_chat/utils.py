@@ -2,18 +2,22 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 
+# Local development ke liye .env file load karega
 load_dotenv()
 
-api_key = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=api_key)
+# Pehle OS environment se lega (Docker/Server), phir .env file se (Local)
+api_key = os.environ.get("GROQ_API_KEY")
 
 if not api_key:
-    print("Warning: GROQ_API_KEY is not set!")
-    client = None 
+    print("Warning: GROQ_API_KEY is not set! Check your .env or Environment Variables.")
+    client = None
 else:
     client = Groq(api_key=api_key)
 
 def get_medical_advice(user_symptoms):
+    if client is None:
+        return "System Error: API Key is not configured correctly."
+
     system_prompt = {
         "role": "system",
         "content": (
@@ -23,13 +27,15 @@ def get_medical_advice(user_symptoms):
         )
     }
     
-    chat_completion = client.chat.completions.create(
-        messages=[
-            system_prompt,
-            {"role": "user", "content": f"I am feeling these symptoms: {user_symptoms}"}
-        ],
-        model="llama-3.3-70b-versatile",
-        temperature=0.5,
-    )
-    
-    return chat_completion.choices[0].message.content
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[
+                system_prompt,
+                {"role": "user", "content": f"I am feeling these symptoms: {user_symptoms}"}
+            ],
+            model="llama-3.3-70b-versatile",
+            temperature=0.5,
+        )
+        return chat_completion.choices[0].message.content
+    except Exception as e:
+        return f"Error connecting to AI service: {str(e)}"
