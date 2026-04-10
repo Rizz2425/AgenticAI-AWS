@@ -34,10 +34,18 @@ resource "aws_security_group" "django_sg" {
 
 # 2. EC2 Instance (Virtual Machine)
 resource "aws_instance" "django_server" {
-  ami           = "ami-0dee22c13ea7a9a67" # Ubuntu 22.04 LTS in Mumbai
-  instance_type = "t3.micro"             # Free tier eligible
-  
+  ami           = "ami-0dee22c13ea7a9a67" 
+  instance_type = "t3.micro"
+  key_name      = "terraform-key"
   vpc_security_group_ids = [aws_security_group.django_sg.id]
+
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt-get update -y
+              sudo apt-get install -y docker.io
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              EOF
 
   tags = {
     Name = "DjangoServer-AWS"

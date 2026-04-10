@@ -1,11 +1,12 @@
-name: "Terraform Deploy"
+name: "Terraform & Docker Deploy"
 
 on:
   push:
     branches:
       - master
+
 jobs:
-  terraform:
+  deploy:
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -18,10 +19,25 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Terraform Init
-        run: terraform init
+      - name: Terraform Init & Apply
+        run: |
+          terraform init
+          terraform apply -auto-approve
+          echo "VM_IP=$(terraform output -raw instance_ip)" >> $GITHUB_ENV
         working-directory: ./terraform
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-        working-directory: ./terraform
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ env.VM_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu
+            sudo rm -rf AgenticAI-AWS
+            git clone https://github.com/${{ github.repository }}.git
+            cd AgenticAI-AWS
+            sudo docker build -t django-app .
+            sudo docker stop django-container || true
+            sudo docker rm django-container || true
+            sudo docker run -d -p 8000:8000 --name django-container django-app
