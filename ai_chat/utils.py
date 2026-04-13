@@ -2,10 +2,8 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 
-# Local development ke liye .env file load karega
 load_dotenv()
 
-# Pehle OS environment se lega (Docker/Server), phir .env file se (Local)
 api_key = os.environ.get("GROQ_API_KEY")
 
 if not api_key:
